@@ -18,7 +18,7 @@ func newUdsServer() *UdsServer {
 }
 
 func (u *UdsServer) Listen() {
-	socketAddr := filepath.Join("/tmp/", "e2-mdf-uds")
+	socketAddr := filepath.Join("/tmp/", "e2-mfd-uds")
 
 	cred, _, err := uds.Current()
 	if err != nil {

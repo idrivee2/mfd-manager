@@ -155,7 +155,7 @@ func (l *MfdDataAppender) rotateFile() error {
 		return err
 	}
 
-	err = l.CreateFileReliable(err, filepath.Join(l.staggingPath, l.fileName+".mdf"))
+	err = l.CreateFileReliable(err, filepath.Join(l.staggingPath, l.fileName+".mfd"))
 	fmt.Println("creatingStagingPathReliable|" + l.diskPath)
 	if err != nil {
 		return err
@@ -184,7 +184,7 @@ func (l *MfdDataAppender) CreateFileReliable(err error, currentPath string) erro
 }
 
 func (l *MfdDataAppender) RenameCurrentFileReliable() error {
-	currentPath := filepath.Join(l.staggingPath, l.fileName+".mdf")
+	currentPath := filepath.Join(l.staggingPath, l.fileName+".mfd")
 	if stat, err := os.Stat(currentPath); os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
@@ -192,7 +192,7 @@ func (l *MfdDataAppender) RenameCurrentFileReliable() error {
 	} else if stat.IsDir() {
 		return &os.PathError{Path: currentPath}
 	}
-	newFileName := l.fileName + "-" + strconv.FormatInt(time.Now().Unix(), 16) + ".mdf"
+	newFileName := l.fileName + "-" + strconv.FormatInt(time.Now().Unix(), 16) + ".mfd"
 	currentPathTemp := filepath.Join(l.staggingPath, newFileName)
 	newPath := filepath.Join(l.diskPath, newFileName)
 
