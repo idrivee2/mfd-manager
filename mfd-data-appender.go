@@ -45,7 +45,7 @@ type MfdDataAppender struct {
 func NewMfdDataAppender(disk string) *MfdDataAppender {
 	fmt.Println("NewMfdDataAppender|" + disk)
 	pathOnDisk := pathutil.Join(disk, "mfd-manager-files")
-	staggingPath := pathutil.Join("/opt/e2-mdf-manager/mfd-manager-files", disk)
+	staggingPath := pathutil.Join("/opt/e2-mfd-manager/mfd-manager-files", disk)
 
 	appender := &MfdDataAppender{
 		logChannel: make(chan MfdEntry, 10), staggingPath: staggingPath, diskPath: pathOnDisk, fileName: "active",
