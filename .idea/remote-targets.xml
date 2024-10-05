@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="WSL - Ubuntu-22.04" type="wsl" uuid="f3950650-6da9-4c7f-a62f-4ef2584e4316">
+        <config>
+          <option name="distributionMsId" value="Ubuntu-22.04" />
+          <option name="projectRootOnTarget" value="/mnt/c/Program Files/JetBrains/GoLand 2022.2.1/jbr/bin&#10;/mfd-manager" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config>
+            <option name="goPath" value="/root/go" />
+            <option name="goRoot" value="/usr/local/go/bin/go" />
+            <option name="goVersion" value="go1.21.4 linux/amd64" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="root@192.168.102.128:22" type="ssh/sftp" uuid="2ba7d4ab-f593-43dd-b434-d886bdeeb067">
+        <config>
+          <option name="projectRootOnTarget" value="/root/mfd-manager" />
+          <option name="serverName" value="root@192.168.102.128:22 password" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config>
+            <option name="goPath" value="/root/go" />
+            <option name="goRoot" value="/usr/local/go/bin/go" />
+            <option name="goVersion" value="go1.22.4 linux/amd64" />
+          </config>
+        </ContributedStateBase>
+      </target>
+      <target name="WSL - CentOS8-stream" type="wsl" uuid="e5afe236-ae9b-49e0-9666-d4f5fa38670e">
+        <config>
+          <option name="distributionMsId" value="CentOS8-stream" />
+          <option name="projectRootOnTarget" value="/mnt/c/Program Files/JetBrains/GoLand 2022.2.1/jbr/bin&#10;/mfd-manager" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config>
+            <option name="goPath" value="/root/go" />
+            <option name="goRoot" value="/usr/bin/go" />
+            <option name="goVersion" value="go1.22.3 (Red Hat 1.22.3-2.module_el8+1064+8c46a2e2) linux/amd64" />
+          </config>
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>
