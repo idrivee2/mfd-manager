@@ -10,6 +10,7 @@ import (
 	pathutil "path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -51,6 +52,7 @@ func NewMfdDataAppender(disk string) *MfdDataAppender {
 		logChannel: make(chan MfdEntry, 10), staggingPath: staggingPath, diskPath: pathOnDisk, fileName: "active",
 	}
 	err := appender.rotateFile()
+	appender.MoveExistingFilesToDestination()
 	fmt.Println("NewMfdDataAppender2|" + disk)
 	if err != nil {
 		log.Fatal("Failed to NewMfdManager|", err)
@@ -143,12 +145,6 @@ func (l *MfdDataAppender) rotateFile() error {
 		return err
 	}
 
-	err = l.creatingTargetPathReliable()
-	fmt.Println("creatingStagingPathReliable|" + l.diskPath)
-	if err != nil {
-		return err
-	}
-
 	err = l.RenameCurrentFileReliable()
 	fmt.Println("creatingStagingPathReliable|" + l.diskPath)
 	if err != nil && !os.IsNotExist(err) {
@@ -200,7 +196,7 @@ func (l *MfdDataAppender) RenameCurrentFileReliable() error {
 	for {
 		i++
 		if err := os.Rename(currentPath, currentPathTemp); err == nil {
-			go MoveFile(currentPathTemp, newPath)
+			go l.MoveFile(currentPathTemp, newPath, 10)
 			break
 		}
 		time.Sleep(10 * time.Millisecond)
@@ -209,42 +205,50 @@ func (l *MfdDataAppender) RenameCurrentFileReliable() error {
 	return nil
 }
 
-func MoveFile(sourcePath, destPath string) {
+func (l *MfdDataAppender) MoveFile(sourcePath, destPath string, retries int) {
+	i := 0
 	for {
-		inputFile, err := os.Open(sourcePath)
-		if os.IsNotExist(err) {
-			break
-		}
+		err := l.creatingTargetPathReliable()
 		if err == nil {
-			destPathTmp := destPath + ".tmp"
-			outputFile, err := os.Create(destPathTmp)
+			inputFile, err := os.Open(sourcePath)
+			if os.IsNotExist(err) {
+				break
+			}
 			if err == nil {
-				_, err = io.Copy(outputFile, inputFile)
-				outputFile.Close()
+				destPathTmp := destPath + ".tmp"
+				outputFile, err := os.Create(destPathTmp)
 				if err == nil {
-					err = os.Rename(destPathTmp, destPath)
+					_, err = io.Copy(outputFile, inputFile)
+					outputFile.Close()
 					if err == nil {
-						inputFile.Close()
-						err = os.Remove(sourcePath)
-						fmt.Fprintf(os.Stdout, "file"+sourcePath+" moved to"+destPath)
-						return
+						err = os.Rename(destPathTmp, destPath)
+						if err == nil {
+							inputFile.Close()
+							err = os.Remove(sourcePath)
+							fmt.Fprintf(os.Stdout, "file"+sourcePath+" moved to"+destPath)
+							return
+						} else {
+							fmt.Fprintf(os.Stderr, "failed to rename "+destPathTmp+" to"+destPath, err)
+							_ = os.Remove(destPathTmp)
+						}
 					} else {
-						fmt.Fprintf(os.Stderr, "failed to rename "+destPathTmp+" to"+destPath, err)
+						fmt.Fprintf(os.Stderr, "failed to copy cotent to "+destPathTmp, err)
 						_ = os.Remove(destPathTmp)
 					}
 				} else {
-					fmt.Fprintf(os.Stderr, "failed to copy cotent to "+destPathTmp, err)
-					_ = os.Remove(destPathTmp)
+					fmt.Fprintf(os.Stderr, "failed to create "+destPathTmp, err)
 				}
+				inputFile.Close()
 			} else {
-				fmt.Fprintf(os.Stderr, "failed to create "+destPathTmp, err)
+				fmt.Fprintf(os.Stderr, "failed to open "+sourcePath, err)
 			}
-			inputFile.Close()
-		} else {
-			fmt.Fprintf(os.Stderr, "failed to open "+sourcePath, err)
 		}
-		fmt.Fprintf(os.Stderr, "failed to move "+sourcePath+" to "+destPath+"|retry in 10s")
-		time.Sleep(10 * time.Second)
+		i++
+		if i > retries {
+			return
+		}
+		fmt.Fprintf(os.Stderr, "failed to move "+sourcePath+" to "+destPath+"|retry in 1s")
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -294,4 +298,15 @@ func (l *MfdDataAppender) creatingTargetPathReliable() error {
 	}
 
 	return nil
+}
+
+func (l *MfdDataAppender) MoveExistingFilesToDestination() {
+	dirEntries, err := os.ReadDir(l.staggingPath)
+	if err == nil {
+		for _, file := range dirEntries {
+			if file.IsDir() == false && strings.HasPrefix(file.Name(), l.fileName) && strings.HasSuffix(file.Name(), ".mdf") && file.Name() != l.fileName+".mdf" {
+				l.MoveFile(pathutil.Join(l.staggingPath, file.Name()), pathutil.Join(l.diskPath, file.Name()), 0)
+			}
+		}
+	}
 }
