@@ -291,7 +291,7 @@ func (l *MfdDataAppender) creatingTargetPathReliable() error {
 		if err := os.MkdirAll(l.diskPath, 0755); err == nil {
 			break
 		} else if i > 20 {
-			log.Fatal("creatingStagingPathReliable failed|", err)
+			log.Fatal("creatingTargetPathReliable failed|", err)
 			return err
 		}
 		time.Sleep(10 * time.Millisecond)
