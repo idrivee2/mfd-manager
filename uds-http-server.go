@@ -90,7 +90,7 @@ func (httpServer *HttpServer) AppendHandler(writer http.ResponseWriter, request 
 			if len(dataRec) > 0 {
 				base, dir := path.Split(dataRec)
 				if base != "" && dir != "" {
-					if mfdManager.Append(base) {
+					if mfdManager.Append(base, 0) {
 						writer.WriteHeader(http.StatusOK)
 						return
 					}

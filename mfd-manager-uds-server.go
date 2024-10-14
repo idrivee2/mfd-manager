@@ -61,12 +61,13 @@ func (u *UdsServer) Listen() {
 				msgType := buffer[0]
 				seqNumber := binary.LittleEndian.Uint16(buffer[1:])
 				msgLen := binary.LittleEndian.Uint16(buffer[3:])
+				size := binary.LittleEndian.Uint64(buffer[5:])
 				sendBuffer[0] = 2
 				binary.LittleEndian.PutUint16(sendBuffer[1:], seqNumber)
 				sendBuffer[3] = 0
 				if msgType == 1 {
 					if msgLen > 0 && msgLen <= 1022 {
-						if mfdManager.Append(string(buffer[5 : msgLen+5])) {
+						if mfdManager.Append(string(buffer[13:msgLen+13]), size) {
 							sendBuffer[3] = 1
 						}
 					}

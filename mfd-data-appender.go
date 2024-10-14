@@ -67,11 +67,12 @@ func NewMfdDataAppender(disk string) *MfdDataAppender {
 type MfdEntry struct {
 	basepath string
 	dir      string
+	size     uint64
 }
 
-func (l *MfdDataAppender) Append(basepath string, dir string) bool {
+func (l *MfdDataAppender) Append(basepath string, dir string, size uint64) bool {
 	if l.IsInitialized {
-		l.logChannel <- MfdEntry{basepath: basepath, dir: dir}
+		l.logChannel <- MfdEntry{basepath: basepath, dir: dir, size: size}
 		return true
 	}
 	return false
@@ -89,15 +90,17 @@ func (l *MfdDataAppender) run() {
 				buffer[0] = NewBasePath
 				binary.LittleEndian.PutUint16(buffer[1:], value)
 				binary.LittleEndian.PutUint16(buffer[3:], length)
-				copy(buffer[5:], mfdEntry.basepath)
-				l.WriteToFileReliable(buffer, 5+length)
+				binary.LittleEndian.PutUint64(buffer[5:], mfdEntry.size)
+				copy(buffer[13:], mfdEntry.basepath)
+				l.WriteToFileReliable(buffer, 13+length)
 			}
 			length := uint16(len(mfdEntry.dir))
 			buffer[0] = NewDeleteItem
 			binary.LittleEndian.PutUint16(buffer[1:], value)
 			binary.LittleEndian.PutUint16(buffer[3:], length)
-			copy(buffer[5:], mfdEntry.dir)
-			l.WriteToFileReliable(buffer, 5+length)
+			binary.LittleEndian.PutUint64(buffer[5:], mfdEntry.size)
+			copy(buffer[13:], mfdEntry.dir)
+			l.WriteToFileReliable(buffer, 13+length)
 			l.fileSize++
 			if l.shouldRollover() {
 				l.rotateFile()

@@ -26,7 +26,7 @@ func NewMfdMananger() *MdfManager {
 	return &mfdManager
 }
 
-func (m MdfManager) Append(message string) bool {
+func (m MdfManager) Append(message string, size uint64) bool {
 	parts := strings.Split(message, "/")
 	if len(parts) > 1 {
 		if appender, found := m.appenders[parts[1]]; found {
@@ -39,7 +39,7 @@ func (m MdfManager) Append(message string) bool {
 				basePath = "/" + pathutil.Join(parts[:4]...)
 				dir = "/" + pathutil.Join(parts[4:]...)
 			}
-			appender.Append(basePath, dir)
+			appender.Append(basePath, dir, size)
 			return true
 		}
 	}
